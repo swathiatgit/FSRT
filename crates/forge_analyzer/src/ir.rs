@@ -627,6 +627,12 @@ impl Inst {
             Inst::Assign(_, r) | Inst::Expr(r) => r,
         }
     }
+
+    pub(crate) fn rvalue_mut(&mut self) -> &mut Rvalue {
+        match self {
+            Inst::Assign(_, r) | Inst::Expr(r) => r,
+        }
+    }
 }
 
 impl Operand {

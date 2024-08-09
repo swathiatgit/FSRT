@@ -244,22 +244,23 @@ pub fn run_resolver(
         // Updates the instruction set with creation of new global reference variables if necessary.
         for (block_id, block) in body.blocks.iter_mut_enumerated() {
             for inst in block.iter_insts_mut() {
+                update_rvalue(inst.rvalue_mut(), &vars_map);
                 match inst {
                     Inst::Assign(variable, rvalue) => {
-                        update_rvalue(rvalue, &vars_map);
-                        let var_id = variable.as_var_id().unwrap();
-                        let (var_kind, updated_var_id, global_exists) =
-                            vars_map.get_mut(&var_id).unwrap();
-                        let projections = &variable.projections;
-                        if !*global_exists || !projections.is_empty() {
-                            *updated_var_id = Some(var_id);
-                            *global_exists = true;
-                        } else {
-                            let new_var_id = body.vars.push_and_get_key(*var_kind);
-                            variable.base = Base::Var(new_var_id);
-                            *updated_var_id = Some(new_var_id);
+                        if let Some(var_id) = variable.as_var_id() {
+                            let (var_kind, updated_var_id, global_exists) =
+                                vars_map.get_mut(&var_id).unwrap();
+                            let projections = &variable.projections;
+                            if !*global_exists || !projections.is_empty() {
+                                *updated_var_id = Some(var_id);
+                            } else {
+                                let new_var_id = body.vars.push_and_get_key(*var_kind);
+                                variable.base = Base::Var(new_var_id);
+                                *updated_var_id = Some(new_var_id);
+                            }
                             *global_exists = true;
                         }
+                        // else: Skip renaming for variables 'super' or 'this', as VarId = None.
                     }
                     Inst::Expr(rvalue) => {}
                 }
@@ -280,40 +281,32 @@ pub fn update_rvalue(
     match rvalue {
         Rvalue::Unary(unop, Operand::Var(variable)) => {
             let op_var_id = variable.as_var_id().unwrap();
-            if let Some((var_kind, updated_var_id, global_exists)) = vars_map.get(&op_var_id) {
-                if *global_exists {
-                    let mut base = &mut variable.base;
-                    *base = Base::Var(updated_var_id.unwrap());
-                }
+            if let Some((var_kind, updated_var_id, true)) = vars_map.get(&op_var_id) {
+                let mut base = &mut variable.base;
+                *base = Base::Var(updated_var_id.unwrap());
             }
         }
         Rvalue::Bin(binop, operand1, operand2) => {
             if let Operand::Var(variable) = operand1 {
                 let op_var_id = variable.as_var_id().unwrap();
-                if let Some((var_kind, updated_var_id, global_exists)) = vars_map.get(&op_var_id) {
-                    if *global_exists {
-                        let mut base = &mut variable.base;
-                        *base = Base::Var(updated_var_id.unwrap());
-                    }
+                if let Some((var_kind, updated_var_id, true)) = vars_map.get(&op_var_id) {
+                    let mut base = &mut variable.base;
+                    *base = Base::Var(updated_var_id.unwrap());
                 }
             }
             if let Operand::Var(variable) = operand2 {
                 let op_var_id = variable.as_var_id().unwrap();
-                if let Some((var_kind, updated_var_id, global_exists)) = vars_map.get(&op_var_id) {
-                    if *global_exists {
-                        let mut base = &mut variable.base;
-                        *base = Base::Var(updated_var_id.unwrap());
-                    }
+                if let Some((var_kind, updated_var_id, true)) = vars_map.get(&op_var_id) {
+                    let mut base = &mut variable.base;
+                    *base = Base::Var(updated_var_id.unwrap());
                 }
             }
         }
         Rvalue::Read(Operand::Var(variable)) => {
             let op_var_id = variable.as_var_id().unwrap();
-            if let Some((var_kind, updated_var_id, global_exists)) = vars_map.get(&op_var_id) {
-                if *global_exists {
-                    let mut base = &mut variable.base;
-                    *base = Base::Var(updated_var_id.unwrap());
-                }
+            if let Some((var_kind, updated_var_id, true)) = vars_map.get(&op_var_id) {
+                let mut base = &mut variable.base;
+                *base = Base::Var(updated_var_id.unwrap());
             }
         }
         // Rvalues of Read (Literal), Unary (Literal), Call (method), Intrinsic, Phi, and Template can be kept same.

@@ -8,6 +8,8 @@ const foo = () => {
   return res;
 };
 
+let number = 5;
+
 let test_function = (word) => {
   console.log(word);
   let test_var = "test_var";
@@ -46,6 +48,8 @@ function var_reref() {
   a = 5;
   c = 2 * b;
 }
+
+let lower_num = 8;
 
 const App = () => {
 

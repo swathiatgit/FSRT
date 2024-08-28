@@ -9,8 +9,9 @@ use crate::utils::{calls_method, eq_prop_name};
 use forge_file_resolver::{FileResolver, ForgeResolver};
 use forge_utils::{create_newtype, FxHashMap};
 use std::collections::{HashMap, HashSet};
+use swc_core::common::collections::AHashSet;
 use swc_core::common::pass::define;
-use swc_core::ecma::utils::var;
+use swc_core::ecma::utils::{collect_decls, var};
 
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -2003,6 +2004,13 @@ impl<'cx> FunctionAnalyzer<'cx> {
 
     fn lower_var_decl(&mut self, var: &VarDecl) {
         for decl in &var.decls {
+            let identifiers: AHashSet<Ident> = collect_decls(decl);
+            for id in &identifiers {
+                println!("\nCollected identifier: {:?}", id.span);
+            }
+            let clone = &decl.init.clone().unwrap();
+            let init = clone.unwrap_parens();
+            // print!("decl: {:?}", init);
             if let Pat::Ident(id) = &decl.name {
                 let id = id.to_id();
                 let def = self.res.get_or_insert_sym(id, self.module);

@@ -9,6 +9,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
+ahash = "0.7"
 clap = { version = "4.5.4", features = ["derive", "wrap_help"] }
 itertools = "0.13.0"
 num-bigint = { version = "0.4.4" }

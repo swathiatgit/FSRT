@@ -110,6 +110,7 @@ pub enum Rvalue {
 pub struct BasicBlock {
     pub insts: Vec<Inst>,
     pub term: Terminator,
+    pub phi_nodes: Vec<(VarId, Vec<BasicBlockId>)>,
     pub set_term_called: bool, // represents whether or not we've
                                // moved over its corresponding BasicBlockBuilder
 }
@@ -330,6 +331,7 @@ impl Body {
             blocks: vec![BasicBlock {
                 insts: Vec::new(),
                 term: Terminator::Ret,
+                phi_nodes: Vec::new(),
                 set_term_called: false,
             }]
             .into(),
@@ -465,6 +467,7 @@ impl Body {
         self.blocks.push_and_get_key(BasicBlock {
             insts: Vec::new(),
             term,
+            phi_nodes: Vec::new(),
             set_term_called: false,
         })
     }

@@ -32,11 +32,11 @@ function test_bug() {
     a = 5;
   }
   
-  function reassign() {
-    let a = 4;
-    let b = "7";
-    b = "7" + a;
-  }
+  // function reassign() {
+  //   let a = 4;
+  //   let b = "7";
+  //   b = "7" + a;
+  // }
   
   function var_reref() {
     let a = 4;
